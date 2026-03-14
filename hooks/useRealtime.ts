@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { formatInTimeZone } from "date-fns-tz";
 import { todayString } from "@/lib/streakLogic";
 
 export interface RealtimeClock {
@@ -12,17 +13,11 @@ export interface RealtimeClock {
 export function useRealtime(onDateChange?: () => void): RealtimeClock {
   const getSnapshot = useCallback((): RealtimeClock => {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-    const dateStr = now.toLocaleDateString("en-GB", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    
+    // Explicitly grab the time and date using date-fns in the correct timezone
+    const timeStr = formatInTimeZone(now, "Asia/Kolkata", "hh:mm:ss a");
+    const dateStr = formatInTimeZone(now, "Asia/Kolkata", "EEEE, do MMMM yyyy");
+    
     return { timeStr, dateStr, today: todayString() };
   }, []);
 

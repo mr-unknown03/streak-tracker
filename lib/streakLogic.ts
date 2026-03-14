@@ -11,22 +11,23 @@ export interface StreakInfo {
   lastStudyDate: string | null;
 }
 
+import { format, subDays } from "date-fns";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+
+const TIMEZONE = "Asia/Kolkata";
+
 export function todayString(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  // Always get the current date explicitly in IST
+  return formatInTimeZone(new Date(), TIMEZONE, "yyyy-MM-dd");
 }
 
 function subtractOneDay(dateStr: string): string {
+  // Parse the YYYY-MM-DD string as a local Indian date, then subtract 1 day natively
   const [y, m, d] = dateStr.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
-  date.setDate(date.getDate() - 1);
-  const ny = date.getFullYear();
-  const nm = String(date.getMonth() + 1).padStart(2, "0");
-  const nd = String(date.getDate()).padStart(2, "0");
-  return `${ny}-${nm}-${nd}`;
+  // Important: Month is 0-indexed in native Date
+  const localDate = new Date(y, m - 1, d);
+  const previousDay = subDays(localDate, 1);
+  return format(previousDay, "yyyy-MM-dd");
 }
 
 export function calculateStreak(dates: string[]): StreakInfo {
@@ -63,9 +64,5 @@ export function calculateStreak(dates: string[]): StreakInfo {
 export function formatDate(dateStr: string): string {
   const [y, m, d] = dateStr.split("-").map(Number);
   const date = new Date(y, m - 1, d);
-  return date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  return format(date, "do MMMM yyyy"); // e.g., "15th March 2026"
 }
